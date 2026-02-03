@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gift a Clover</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Open Runde';
+      src: url('OpenRunde-Medium.woff2') format('woff2'),
+           url('OpenRunde-Medium.woff') format('woff');
+      font-weight: 500;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Open Runde';
+      src: url('OpenRunde-Semibold.woff2') format('woff2'),
+           url('OpenRunde-Semibold.woff') format('woff');
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Shamrock green text selection */
+    ::selection {
+      background: #009A44;
+      color: white;
+    }
+    ::-moz-selection {
+      background: #009A44;
+      color: white;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Open Runde', sans-serif;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    /* Header text row */
+    .header {
+      position: absolute;
+      top: 42px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 60px;
+      z-index: 10;
+    }
+
+    .header span {
+      font-family: 'Open Runde', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: white;
+      letter-spacing: -0.05em;
+      white-space: nowrap;
+      cursor: text;
+      user-select: text;
+    }
+
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* Gift card - starts off-screen right, slides in on hover */
+    .card-container {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%) rotate(0deg) scale(0.97);
+      z-index: 20;
+      right: -600px;
+      transition: right 0.6s cubic-bezier(.785, .135, .15, .86),
+                  transform 0.6s cubic-bezier(.785, .135, .15, .86);
+    }
+
+    .card-container.visible {
+      right: 8%;
+      transform: translateY(-50%) rotate(-1.03deg) scale(1);
+    }
+
+    .gift-card {
+      width: 542px;
+      height: 266px;
+      position: relative;
+      filter: drop-shadow(0px 4px 32px rgba(0, 0, 0, 0.08));
+    }
+
+    .card-blur {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(208, 255, 233, 0.6);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 4px;
+    }
+
+    .card-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 64px 29px 30px 29px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+
+    .card-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 484px;
+      margin: 0 auto;
+    }
+
+    .card-title {
+      font-family: 'Open Runde', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: #126469;
+      letter-spacing: -0.05em;
+      text-align: center;
+      width: 100%;
+    }
+
+    .card-fields {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .email-input {
+      width: 100%;
+      height: 59px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(8.4px);
+      -webkit-backdrop-filter: blur(8.4px);
+      border: 1px solid white;
+      border-radius: 20px;
+      padding: 20px 23px;
+      font-family: 'Open Runde', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #126469;
+      letter-spacing: -0.05em;
+      outline: none;
+      text-align: center;
+    }
+
+    .email-input::placeholder {
+      color: #849C9E;
+      transition: opacity 0.2s;
+    }
+
+    .email-input:focus::placeholder {
+      opacity: 0;
+    }
+
+    .submit-btn {
+      width: 100%;
+      height: 59px;
+      background: #000000;
+      border: 1px solid #000000;
+      border-radius: 20px;
+      padding: 20px 23px;
+      font-family: 'Open Runde', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      letter-spacing: -0.05em;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .header {
+        padding: 0 20px;
+      }
+      .header span {
+        font-size: 11px;
+      }
+      .gift-card {
+        width: 90vw;
+        max-width: 542px;
+        height: auto;
+        aspect-ratio: 542 / 266;
+      }
+      .card-inner {
+        padding: 12% 5% 6% 5%;
+      }
+      .card-content {
+        width: 100%;
+      }
+      .card-title {
+        font-size: 18px;
+      }
+      .email-input, .submit-btn {
+        height: 50px;
+        font-size: 14px;
+        border-radius: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header text -->
+  <header class="header">
+    <span>BY KEYAN \\</span>
+    <span class="header-center">~ HOVER TO GIFT A CLOVER &lt;3 ~</span>
+    <span>// FEB.02.26</span>
+  </header>
+
+  <!-- Gift card - centered -->
+  <div class="card-container" id="cardContainer">
+    <div class="gift-card" id="giftCard">
+      <!-- Blur layer -->
+      <div class="card-blur"></div>
+      <!-- SVG card shape with scalloped left edge and square cutouts -->
+      <svg class="card-bg" viewBox="0 0 542 266" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <!-- Background with square cutouts using evenodd fill rule -->
+        <path fill-rule="evenodd" clip-rule="evenodd" d="
+          M 4 0
+          L 538 0
+          Q 542 0 542 4
+          L 542 262
+          Q 542 266 538 266
+          L 4 266
+          Q 0 266 0 262
+          L 0 250
+          Q 5 245 5 238 Q 5 231 0 226
+          L 0 212
+          Q 5 207 5 200 Q 5 193 0 188
+          L 0 174
+          Q 5 169 5 162 Q 5 155 0 150
+          L 0 136
+          Q 5 131 5 124 Q 5 117 0 112
+          L 0 98
+          Q 5 93 5 86 Q 5 79 0 74
+          L 0 60
+          Q 5 55 5 48 Q 5 41 0 36
+          L 0 4
+          Q 0 0 4 0
+          Z
+          M 25 12 L 25 26 L 39 26 L 39 12 Z
+          M 182 12 L 182 26 L 196 26 L 196 12 Z
+          M 346 12 L 346 26 L 360 26 L 360 12 Z
+          M 503 12 L 503 26 L 517 26 L 517 12 Z
+        " fill="rgba(208, 255, 233, 0.6)"/>
+        <!-- Dashed border for outer shape -->
+        <path d="
+          M 4 0
+          L 538 0
+          Q 542 0 542 4
+          L 542 262
+          Q 542 266 538 266
+          L 4 266
+          Q 0 266 0 262
+          L 0 250
+          Q 5 245 5 238 Q 5 231 0 226
+          L 0 212
+          Q 5 207 5 200 Q 5 193 0 188
+          L 0 174
+          Q 5 169 5 162 Q 5 155 0 150
+          L 0 136
+          Q 5 131 5 124 Q 5 117 0 112
+          L 0 98
+          Q 5 93 5 86 Q 5 79 0 74
+          L 0 60
+          Q 5 55 5 48 Q 5 41 0 36
+          L 0 4
+          Q 0 0 4 0
+          Z
+        " stroke="white" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+        <!-- Dashed borders for square cutouts -->
+        <rect x="25" y="12" width="14" height="14" stroke="white" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+        <rect x="182" y="12" width="14" height="14" stroke="white" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+        <rect x="346" y="12" width="14" height="14" stroke="white" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+        <rect x="503" y="12" width="14" height="14" stroke="white" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+      </svg>
+
+      <div class="card-inner">
+        <div class="card-content">
+          <h1 class="card-title">GIFT A CLOVER</h1>
+          <div class="card-fields">
+            <input type="email" class="email-input" id="emailInput" placeholder="RECIPIENT EMAIL">
+            <button class="submit-btn">ONWARDS !!</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="sketch.js"></script>
+</body>
+</html>
